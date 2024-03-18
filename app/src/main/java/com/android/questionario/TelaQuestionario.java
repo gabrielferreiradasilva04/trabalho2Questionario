@@ -153,12 +153,20 @@ public class TelaQuestionario extends AppCompatActivity {
     public List<String> generateBadAnswers(String correctAnswer){
         List<String> badAnswers = new ArrayList<>();
         Random random = new Random();
-        int index = random.nextInt(20);
 
         while(badAnswers.size() < 2){
+            int index = random.nextInt(20);
+            int duplicate = 0;
             String badAnswer = this.responseList.get(index);
             if(!badAnswer.equals(correctAnswer)){
-                badAnswers.add(badAnswer);
+                for (String existendBadAnswer: badAnswers) {
+                    if(badAnswer.equals(existendBadAnswer)){
+                       duplicate = 1;
+                    }
+                }
+                if(duplicate == 0){
+                    badAnswers.add(badAnswer);
+                }
             }
         }
         return badAnswers;
@@ -172,10 +180,6 @@ public class TelaQuestionario extends AppCompatActivity {
             Random random = new Random();
             int index = random.nextInt(arraysPositions);
             if(index >=0 && buttons.get(index)!=null && !badAnswersAndCorrectAnswer.get(index).isEmpty()){
-                if(index > 0){
-                    index = index -1;
-
-                }
              buttons.get(index).setText(badAnswersAndCorrectAnswer.get(index));
              buttons.remove(buttons.get(index));
              badAnswersAndCorrectAnswer.remove(badAnswersAndCorrectAnswer.get(index));
