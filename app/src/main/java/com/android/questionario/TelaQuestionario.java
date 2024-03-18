@@ -19,7 +19,11 @@ import java.util.Set;
 public class TelaQuestionario extends AppCompatActivity {
 
     private Map<String,String> questionsAndResponsesList = new HashMap<>();
-    private List<String> questionsList;
+    private List<String> questionsList = new ArrayList<>();
+
+    private List<String> responseList = new ArrayList<>();
+    private List<String> badAnswers = new ArrayList<>();
+    private List<Button> buttons = new ArrayList<>();
 
     public static int errors = 0;
     public static int corrects = 0;
@@ -45,24 +49,36 @@ public class TelaQuestionario extends AppCompatActivity {
         verify = findViewById(R.id.buttonVerify);
         question = findViewById(R.id.question);
 
+
         questionsAndResponsesList = generateQuestions();
-        questionsList = questionsAndResponsesList.keySet();
+        Set<String> listKeys = questionsAndResponsesList.keySet();
 
-        for (String question: questionsList) {
-
+        for (String question: listKeys) {
+            questionsList.add(question);
         }
 
-        Log.d("LISTA DE QUESTÕES>>>", "LISTA DE QUESTÕES>>> "+ questionsList);
-        Log.d("QUESTÕES E RESPOSTAS", "Questões e respostas>>> "+ questionsAndResponsesList);
+        while(currentQuestion < 4){
+            question.setText(questionsList.get(currentQuestion));
+            buttons.add(responseA);
+            buttons.add(responseB);
+            buttons.add(responseC);
+            buttons.add(responseD);
 
+
+            badAnswers = generateBadAnswers(questionsAndResponsesList.get(questionsList.get(currentQuestion)));
+            buttonsXAnswers(buttons, badAnswers, questionsAndResponsesList.get(questionsList.get(currentQuestion)));
+
+            currentQuestion ++;
+
+
+        }
 
     }
 
 
 
-    public static Map<String,String> generateQuestions (){
+    private Map<String,String> generateQuestions (){
         List<String> questionsList = new ArrayList<>();
-        List<String> responseList = new ArrayList<>();
         Map<String,String> questionsXReponses = new HashMap<>();
 
         List<String> selectedQuestions = new ArrayList<>();
@@ -132,5 +148,42 @@ public class TelaQuestionario extends AppCompatActivity {
             questionsXResponseSelected.put(question, response);
         }
     return questionsXResponseSelected;
+    }
+
+    public List<String> generateBadAnswers(String correctAnswer){
+        List<String> badAnswers = new ArrayList<>();
+        Random random = new Random();
+        int index = random.nextInt(20);
+
+        while(badAnswers.size() < 2){
+            String badAnswer = this.responseList.get(index);
+            if(!badAnswer.equals(correctAnswer)){
+                badAnswers.add(badAnswer);
+            }
+        }
+        return badAnswers;
+    }
+
+    public void buttonsXAnswers(List<Button> buttons, List<String> badAnswersAndCorrectAnswer, String correctAnswer){
+        badAnswersAndCorrectAnswer.add(correctAnswer);
+        int i = 0;
+        int arraysPositions = 3;
+        while (i < 3){
+            Random random = new Random();
+            int index = random.nextInt(arraysPositions);
+            if(index >=0 && buttons.get(index)!=null && !badAnswersAndCorrectAnswer.get(index).isEmpty()){
+                if(index > 0){
+                    index = index -1;
+
+                }
+             buttons.get(index).setText(badAnswersAndCorrectAnswer.get(index));
+             buttons.remove(buttons.get(index));
+             badAnswersAndCorrectAnswer.remove(badAnswersAndCorrectAnswer.get(index));
+             arraysPositions --;
+             i++;
+            }
+        }
+
+
     }
 }
