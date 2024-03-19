@@ -292,7 +292,7 @@ public class TelaQuestionario extends AppCompatActivity {
         }
     }
     public void game(){
-        textProgress.setText(Integer.toString(currentQuestion+1)+"de 5");
+        textProgress.setText(Integer.toString(currentQuestion+1)+" de 5");
         selectedAnswer = "";
         textSelectedAnswer.setText(selectedAnswer);
         progressBar.setMax(4);
