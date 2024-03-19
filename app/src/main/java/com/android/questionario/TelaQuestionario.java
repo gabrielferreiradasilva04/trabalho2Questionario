@@ -1,16 +1,18 @@
 package com.android.questionario;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -24,18 +26,24 @@ public class TelaQuestionario extends AppCompatActivity {
     private List<String> responseList = new ArrayList<>();
     private List<String> badAnswers = new ArrayList<>();
     private List<Button> buttons = new ArrayList<>();
+    private String selectedAnswer = "";
+    private String correctAnswer = "";
+    private TextView textProgress;
 
     public static int errors = 0;
     public static int corrects = 0;
     public int  currentQuestion = 0;
-    public Button responseA;
-    public Button responseB;
-    public Button responseC;
-    public Button responseD;
+    private Button responseA;
+    private Button responseB;
+    private Button responseC;
+    private Button responseD;
 
-    public Button verify;
-    public Button nextQuestion;
-    public TextView question;
+    private Button verify;
+    private Button nextQuestion;
+    private TextView question;
+    private TextView textSelectedAnswer;
+    private ProgressBar progressBar;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +56,19 @@ public class TelaQuestionario extends AppCompatActivity {
         nextQuestion = findViewById(R.id.buttonNext);
         verify = findViewById(R.id.buttonVerify);
         question = findViewById(R.id.question);
+        textSelectedAnswer = findViewById(R.id.answer);
+        progressBar = findViewById(R.id.progressBar);
+        textProgress = findViewById(R.id.textProgress);
+        buttons.add(responseA);
+        buttons.add(responseB);
+        buttons.add(responseC);
+        buttons.add(responseD);
 
 
+
+        /***
+         * carrega a lista de questões
+         */
         questionsAndResponsesList = generateQuestions();
         Set<String> listKeys = questionsAndResponsesList.keySet();
 
@@ -57,23 +76,90 @@ public class TelaQuestionario extends AppCompatActivity {
             questionsList.add(question);
         }
 
-        while(currentQuestion < 4){
-            question.setText(questionsList.get(currentQuestion));
-            buttons.add(responseA);
-            buttons.add(responseB);
-            buttons.add(responseC);
-            buttons.add(responseD);
+        /***
+         * Inicio do questionário com 5 pergunrtas sobre C
+         *
+         */
+        corrects = 0;
+        errors = 0;
 
+        game();
 
-            badAnswers = generateBadAnswers(questionsAndResponsesList.get(questionsList.get(currentQuestion)));
-            buttonsXAnswers(buttons, badAnswers, questionsAndResponsesList.get(questionsList.get(currentQuestion)));
+        this.responseA.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedAnswer = responseA.getText().toString();
+                textSelectedAnswer.setText(selectedAnswer);
+                verify.setEnabled(true);
+                verify.setVisibility(View.VISIBLE);
+            }
+        });
+        this.responseB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedAnswer = responseB.getText().toString();
+                textSelectedAnswer.setText(selectedAnswer);
+                verify.setEnabled(true);
+                verify.setVisibility(View.VISIBLE);
+            }
+        });
+        this.responseC.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedAnswer = responseC.getText().toString();
+                textSelectedAnswer.setText(selectedAnswer);
+                verify.setEnabled(true);
+                verify.setVisibility(View.VISIBLE);
+            }
+        });
+        this.responseD.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedAnswer = responseD.getText().toString();
+                textSelectedAnswer.setText(selectedAnswer);
+                verify.setEnabled(true);
+                verify.setVisibility(View.VISIBLE);
+            }
+        });
 
-            currentQuestion ++;
+        verify.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                verify.setVisibility(View.INVISIBLE);
+                verify.setEnabled(false);
+                for (Button button : buttons) {
+                    button.setEnabled(false);
+                }
+                if(selectedAnswer.equals(correctAnswer)){
+                    corrects = corrects + 1;
+                    Toast message = Toast.makeText(getApplicationContext(), "Correto!", Toast.LENGTH_SHORT);
+                    message.show();
+                }else{
+                    errors = errors + 1;
+                    Toast message = Toast.makeText(getApplicationContext(), "Incorreto!", Toast.LENGTH_SHORT);
+                    message.show();
+                }
+                nextQuestion.setEnabled(true);
+                nextQuestion.setVisibility(View.VISIBLE);
+                nextQuestion.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        currentQuestion++;
+                        if(currentQuestion >= 5){
+                            Intent i = new Intent(TelaQuestionario.this, TelaFimDeJogo.class);
+                            startActivity(i);
+                            finish();
+                        }else{
+                            game();
+                        }
 
-
-        }
-
+                    }
+                });
+            }
+        });
     }
+
+
 
 
 
@@ -120,10 +206,10 @@ public class TelaQuestionario extends AppCompatActivity {
         responseList.add("void");
         responseList.add("_Bool");
         responseList.add("+");
+        responseList.add("==");
         responseList.add("malloc");
         responseList.add("printf");
         responseList.add("scanf");
-        responseList.add("==");
         responseList.add("int");
 
         for(int i = 0; i < questionsList.size(); i++){
@@ -147,21 +233,21 @@ public class TelaQuestionario extends AppCompatActivity {
             String response = questionsXReponses.get(question);
             questionsXResponseSelected.put(question, response);
         }
-    return questionsXResponseSelected;
+        return questionsXResponseSelected;
     }
 
     public List<String> generateBadAnswers(String correctAnswer){
         List<String> badAnswers = new ArrayList<>();
         Random random = new Random();
 
-        while(badAnswers.size() < 2){
+        while(badAnswers.size() <= 2){
             int index = random.nextInt(20);
             int duplicate = 0;
             String badAnswer = this.responseList.get(index);
             if(!badAnswer.equals(correctAnswer)){
                 for (String existendBadAnswer: badAnswers) {
                     if(badAnswer.equals(existendBadAnswer)){
-                       duplicate = 1;
+                        duplicate = 1;
                     }
                 }
                 if(duplicate == 0){
@@ -174,20 +260,59 @@ public class TelaQuestionario extends AppCompatActivity {
 
     public void buttonsXAnswers(List<Button> buttons, List<String> badAnswersAndCorrectAnswer, String correctAnswer){
         badAnswersAndCorrectAnswer.add(correctAnswer);
-        int i = 0;
-        int arraysPositions = 3;
-        while (i < 3){
+        for (Button button: buttons) {
+            button.setText("");
+        }
+        int[] buttonChoose = {0,1,2,3};
+        int[] answerChoose = {0,1,2,3};
+        int buttonsNotEmpty = 0;
+
+        while (buttonsNotEmpty <=3){
+            buttonsNotEmpty = 0;
+            int duplicateAnswer = 0;
+
             Random random = new Random();
-            int index = random.nextInt(arraysPositions);
-            if(index >=0 && buttons.get(index)!=null && !badAnswersAndCorrectAnswer.get(index).isEmpty()){
-             buttons.get(index).setText(badAnswersAndCorrectAnswer.get(index));
-             buttons.remove(buttons.get(index));
-             badAnswersAndCorrectAnswer.remove(badAnswersAndCorrectAnswer.get(index));
-             arraysPositions --;
-             i++;
+            int buttonIndex = random.nextInt(buttonChoose.length);
+            int answerIndex = random.nextInt(answerChoose.length);
+
+            for (Button button: buttons) {
+                if(button.getText().equals(badAnswersAndCorrectAnswer.get(answerChoose[answerIndex]))){
+                    duplicateAnswer = 1;
+                }
             }
+            if(duplicateAnswer == 0 && buttons.get(buttonChoose[buttonIndex]).getText().equals("")){
+                buttons.get(buttonChoose[buttonIndex]).setText(badAnswersAndCorrectAnswer.get(answerChoose[answerIndex]));
+                for (Button button: buttons) {
+                    if(!button.getText().equals("")){
+                        buttonsNotEmpty++;
+                    }
+                }
+            }
+
+        }
+    }
+    public void game(){
+        textProgress.setText(Integer.toString(currentQuestion+1)+"de 5");
+        selectedAnswer = "";
+        textSelectedAnswer.setText(selectedAnswer);
+        progressBar.setMax(4);
+        progressBar.setProgress(currentQuestion);
+        verify.setEnabled(false);
+        verify.setVisibility(View.INVISIBLE);
+        nextQuestion.setEnabled(false);
+        nextQuestion.setVisibility(View.VISIBLE);
+        for (Button button:buttons) {
+            button.setEnabled(true);
         }
 
+        correctAnswer = questionsAndResponsesList.get(questionsList.get(currentQuestion));
+        question.setText(questionsList.get(currentQuestion));
 
+        badAnswers = generateBadAnswers(questionsAndResponsesList.get(questionsList.get(currentQuestion)));
+        buttonsXAnswers(buttons, badAnswers, questionsAndResponsesList.get(questionsList.get(currentQuestion)));
     }
+
 }
+
+
+
